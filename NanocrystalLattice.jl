@@ -11,7 +11,9 @@ julia> NanocrystalIndexing(10, 10, 1)
 ```
 ## INPUT
 `nx`: number of nanocrystal along x direction 
+
 `ny`: ____________//_____________ y direction
+
 `nz`: ____________//_____________ z direction
 """
 function NanocrystalIndexing(nx, ny, nz)
@@ -36,10 +38,14 @@ julia> NanocrystalIndexing(10, 10, 1)
 ```
 ## INPUT
 `nx`: number of nanocrystal along x direction 
+
 `ny`: ____________//_____________ y direction
+
 `nz`: ____________//_____________ z direction
-`length`:  distance between the centers of two adjacent nanocrystals
-           each nanocrystal encapsulated by ligand is assumed to be a cube
+
+`length`: distance between the centers of two adjacent nanocrystals
+          each nanocrystal encapsulated by ligand is assumed to be a cube
+
 `NCIndex`: 3D array of dimension nx*ny*nz containing indices of the nanocrystals
 """
 function NanocrystalPositions(nx, ny, nz, length, NCIndex)

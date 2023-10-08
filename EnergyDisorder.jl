@@ -12,8 +12,11 @@ julia> EneryWidth(0.5, -0.3, 0.1, 1)
 ```
 ## INPUT
 `Ekin`: kinetic energy (energy unit)
+
 `ECoul`: Coulomb energy (energy unit)
+
 `size_stand_dev`: standard deviation of the size dispersion (%)
+
 `max_deriv`: highest order of derivative to compute the energy spread
 """
 function EnergyWidth(Ekin, ECoul, size_stand_dev, max_deriv)
@@ -32,7 +35,9 @@ Generate an array following gaussian distribution
 julia> gen_gaussian_rand_array(0.5, 100)
 ```
 `mean_value`: mean value of the Gaussian distribution
+
 `standard_deviation`: standard deviation for the Gaussian distribution
+
 `numb_element`: number of elements (size) of output array
 """
 function gen_gaussian_rand_array(mean_value, standard_deviation, numb_element)
