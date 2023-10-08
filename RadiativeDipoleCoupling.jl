@@ -24,22 +24,75 @@ function DipSecondTerm(rhat)
     if (size_of_r[2]==1) rhat = reshape(rhat,1,3) end
     result = Matrix{Float64}(I,3,3) - 3.0 * (rhat' * rhat)
   end
-  return result # to set the return variable
+  return result 
 end
 
 # ------------------------------------------
 
 """
-Function that computes the off-diagonal dipole-mediated radiative coupling J_{i,j}
+Function that computes the full radiative coupling with J_{i,j}
 
 ### INPUTS:
+`norm_kr`: norm of k*r, k=wave number of the transition, r=position vector
+
+`rhat`: 3x1 unit vector along the direction of r
+"""
+function radiative_coupling_full(norm_kr, rhat)
+  y0_j0 = sf_bessel_y0(norm_kr) - im * sf_bessel_j0(norm_kr) 
+  y2_j2 = 0.5 * ( im * sf_bessel_j2(norm_kr) - sf_bessel_y2(norm_kr) )
+  result = y0_j0 .* Matrix{Float64}(I,3,3) .+ y2_j2 .* DipSecondTerm(rhat)
+  return result
+end
+
+# ------------------------------------------
+
+"""
+Function that computes the off-diagonal dipole-only y2 terms of Omega_{i,j}
+
+### INPUTS:
+
+`norm_kr`: norm of k*r, k=wave number of the transition, r=position vector
+
+`rhat`: 3x1 unit vector along the direction of r
+"""
+function dipole_coupling_y2(norm_kr, rhat)
+  y2 = - 0.5 * sf_bessel_y2(norm_kr)
+  result = y2 .* DipSecondTerm(rhat)
+  return result
+end
+
+# ------------------------------------------
+
+"""
+Function that computes the off-diagonal dipole-mediated j2 and y2 terms of Omega_{i,j}
+
+### INPUTS:
+
+`norm_kr`: norm of k*r, k=wave number of the transition, r=position vector
+
+`rhat`: 3x1 unit vector along the direction of r
+"""
+function dipole_coupling_j2y2(norm_kr, rhat)
+  y2_j2 = 0.5 * ( im * sf_bessel_j2(norm_kr) - sf_bessel_y2(norm_kr) )
+  result = y2_j2 .* DipSecondTerm(rhat) 
+  return result
+end
+
+# ------------------------------------------
+
+"""
+Function that computes the off-diagonal dipole-mediated coupling 
+```julia
+julia> RadiativeCoupling(radiative_coupling_full, 0.5, [1/2, 1/2, 0])
+```
+### INPUTS:
+`coupling_func`: function name for which coupling function to be used
 
 `prefac`: prefactor = hbar*gamma_r/2; gamma_r = radiative decay rate
 
 `kr`: k*r, k=wave number of the transition, r=position vector
-
 """
-function RadiativeCoupling(prefac, kr)
+function RadiativeCoupling(coupling_func::Function, prefac, kr)
   size_kr = size(kr)
   if (minimum(size_kr)!=1 || maximum(size_kr)!=3)
     result = 0.0
@@ -48,78 +101,11 @@ function RadiativeCoupling(prefac, kr)
     norm_kr = sqrt(dot(kr,kr))
     if (norm_kr > eps(Float64))
       rhat = kr ./ norm_kr
-
-      # y0_j0 = - sphbesselj(-1,norm_kr) - im * sphbesselj(0,norm_kr)
-      # y2_j2 = 0.5 * ( sphbesselj(-3,norm_kr) + im * sphbesselj(2,norm_kr) )
-
-      y0_j0 = sf_bessel_y0(norm_kr) - im * sf_bessel_j0(norm_kr) 
-      y2_j2 = 0.5 * ( im * sf_bessel_j2(norm_kr) - sf_bessel_y2(norm_kr) )
-     result = prefac .* ( y0_j0 .* Matrix{Float64}(I,3,3) .+ y2_j2 .* DipSecondTerm(rhat) )
+      result = prefac .* coupling_func(norm_kr, rhat)
     else
       result = Inf
     end
   end
   return result
 end
-
-# ------------------------------------------
-
-"""
-Function that computes the off-diagonal dipole-only coupling of
-Omega_{i,j}
-
-### INPUTS:
-
-`prefac`: prefactor = hbar*gamma_r/2; gamma_r = radiative decay rate
-
-`kr`: k*r, k=wave number of the transition, r=position vector
-
-"""
-function dipole_coupling_y2(prefac, kr)
-  size_kr = size(kr)
-  if (minimum(size_kr)!=1 || maximum(size_kr)!=3)
-    result = 0.0
-  else
-    if (size_kr[2]==1) kr = reshape(kr,1,3) end
-    norm_kr = sqrt(dot(kr,kr))
-    if (norm_kr > eps(Float64))
-      rhat = kr ./ norm_kr
-      result = prefac .* ( - 0.5 * sf_bessel_y2(norm_kr) .* DipSecondTerm(rhat) )
-    else
-      result = Inf
-    end
-  end
-  return result
-end
-
-# ------------------------------------------
-
-"""
-Function that computes the off-diagonal dipole-mediated radiative coupling J_{i,j}
-
-### INPUTS:
-
-`prefac`: prefactor = hbar*gamma_r/2; gamma_r = radiative decay rate
-
-`kr`: k*r, k=wave number of the transition, r=position vector
-
-"""
-function dipole_coupling_j2y2(prefac, kr)
-  size_kr = size(kr)
-  if (minimum(size_kr)!=1 || maximum(size_kr)!=3)
-    result = 0.0
-  else
-    if (size_kr[2]==1) kr = reshape(kr,1,3) end
-    norm_kr = sqrt(dot(kr, kr))
-    if (norm_kr > eps(Float64))
-      rhat = kr ./ norm_kr
-      y2_j2 = 0.5 * ( im * sf_bessel_j2(norm_kr) - sf_bessel_y2(norm_kr) )
-      result = prefac .* ( y2_j2 .* DipSecondTerm(rhat) )
-    else
-      result = Inf
-    end
-  end
-  return result
-end
-
 
