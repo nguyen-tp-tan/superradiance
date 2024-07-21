@@ -34,7 +34,7 @@ end
 Function that returns the 3D position vectors of nanocrystals in a cubic superlattice
 corresponding to their indices, which are computed from function "NanocrystalIndexing"
 ```julia
-julia> NanocrystalIndexing(10, 10, 1)
+julia> NanocrystalPositions(2, 2, 1, 2.5, [1 2 3; 4 5 6])
 ```
 ## INPUT
 `nx`: number of nanocrystal along x direction 
@@ -58,6 +58,45 @@ function NanocrystalPositions(nx, ny, nz, length, NCIndex)
      result[1:3, current_index] = length * [inx-0.5; iny-0.5; inz-0.5]
     end
    end
+  end
+  return result
+end
+
+# ------------------------------------------
+
+"""
+Function that returns the 3D position vectors of nanocrystals in a cubic superlattice
+corresponding to their indices, which are computed from function "NanocrystalIndexing"
+```julia
+julia> NanocrystalPositionsOrthorhombic(3, 2, 1, [2.5, 4.0, 2.5], [1 2 3; 4 5 6])
+```
+## INPUT
+`nx`: number of nanocrystal along x direction 
+
+`ny`: ____________//_____________ y direction
+
+`nz`: ____________//_____________ z direction
+
+`basis_lengths`: distances between the centers of two adjacent nanocrystals along 3 axes
+                 each nanocrystal encapsulated by ligand is assumed to be a cube
+
+`NCIndex`: 3D array of dimension nx*ny*nz containing indices of the nanocrystals
+"""
+function NanocrystalPositionsOrthorhombic(nx, ny, nz, basis_lengths, NCIndex)
+  tot_num_NC = nx*ny*nz
+  result = zeros(3, tot_num_NC)
+  if (size(basis_lengths)[1] != 3)
+    return result
+  end
+
+  for inx=1:nx
+    for iny=1:ny
+      for inz=1:nz
+        current_index = NCIndex[inx,iny,inz]
+        result[1:3, current_index] = 
+          [basis_lengths[1] * inx; basis_lengths[2]*iny; basis_lengths[3]*inz]
+      end
+    end
   end
   return result
 end
