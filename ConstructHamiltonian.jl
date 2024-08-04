@@ -74,3 +74,84 @@ function make_radiative_Htotal(n, prefac, kr, E_resonant, vec_delE, coupling_fun
     end
     return H_total
 end
+
+# ------------------------------------------
+
+"""
+Function that constructs the total Hamiltonian of a dumbell 2d superlattice 
+  CCCCCCXXXX
+  CCCCCCXXXX
+  CCCCCCXXXX
+  CCCCCCXXXX
+  CCCCCCCCCC
+  CCCCCCCCCC
+  XXXXCCCCCC
+  XXXXCCCCCC
+  XXXXCCCCCC
+  XXXXCCCCCC
+  C = site with a nanocrystal, X = empty site
+The resonant energy are in diagonal blocks and the off-diagonal terms represents
+the radiative coupling.
+The Hamiltonian is zero where the lattice site is missing.
+## INPUT
+`nx_empty`: number of empty lattice sites
+
+`nx_overlap`: number of overlapping lattice sites
+
+`prefac`: multiplicative pre-factor
+
+`indices_suplatt`: indices in the superlattice
+
+`kr`: 3xn array of k_0 * r of the nanocrystals
+
+`E_resonant`: the resonant energy for the diagonal blocks
+
+`vec_delE`: vector of random energy variation, 
+            = 0 if no energy disorder, != 0 otherwise
+
+`coupling_func`: function for the coupling type
+"""
+function make_2d_dumbbell_Htotal(nx_empty, nx_overlap, prefac, indices_suplatt, kr, 
+  E_resonant, vec_delE, coupling_func::Function)
+
+  n = (nx_empty * 2 + nx_overlap)^2
+
+  empty_sites = Vector{Int32}()
+  for ix=1:nx_empty
+    for iy=(nx_empty+nx_overlap+1):(nx_empty*2+nx_overlap)
+      append!(empty_sites, indices_suplatt[ix,iy,1])
+    end
+  end
+  for ix=(nx_empty+nx_overlap+1):(nx_empty*2+nx_overlap)
+    for iy=1:nx_empty
+      append!(empty_sites, indices_suplatt[ix,iy,1])
+    end
+  end
+
+  Mat_I3x3 = Matrix{Complex{Float64}}(I, 3, 3)
+  H_diag_blk = Mat_I3x3*E_resonant
+  H_total = zeros(Complex{Float64}, 3*n, 3*n)
+
+  for irow=1:n
+    for icol=irow:n
+      start_row = 3*(irow-1)+1; end_row = 3*irow
+      start_col = 3*(icol-1)+1; end_col = 3*icol
+      
+      is_row_empty = typeof(findfirst(i->i==irow, empty_sites)) == Nothing
+      is_col_empty = typeof(findfirst(i->i==icol, empty_sites)) == Nothing
+
+      if (is_row_empty || is_col_empty)
+        continue
+      elseif (irow==icol)
+        H_total[start_row:end_row,start_col:end_col] = H_diag_blk + Mat_I3x3*vec_delE[irow]
+      else
+        current_kr = kr[1:3,irow] - kr[1:3,icol]
+        current_kr = reshape(current_kr, 3, 1)
+        H_total[start_row:end_row,start_col:end_col] = RadiativeCoupling(coupling_func, prefac, current_kr)
+        H_total[start_col:end_col,start_row:end_row] = H_total[start_row:end_row,start_col:end_col]
+      end
+    end
+  end
+
+  return H_total
+end
