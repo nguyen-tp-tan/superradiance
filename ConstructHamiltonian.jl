@@ -77,6 +77,24 @@ end
 
 # ------------------------------------------
 
+function get_empty_sites(n_empty, n_overlap, indices)
+  empty_sites = Vector{Int32}()
+
+  for iy=1:n_empty
+    for ix=(n_empty+n_overlap+1):(n_empty*2+n_overlap)
+      append!(empty_sites, indices[ix,iy,1])
+    end
+  end
+
+  for iy=(n_empty+n_overlap+1):(n_empty*2+n_overlap)
+    for ix=1:n_empty
+      append!(empty_sites, indices[ix,iy,1])
+    end
+  end
+
+  return empty_sites
+end
+
 """
 Function that constructs the total Hamiltonian of a dumbell 2d superlattice 
   CCCCCCXXXX
@@ -116,17 +134,7 @@ function make_2d_dumbbell_Htotal(nx_empty, nx_overlap, prefac, indices_suplatt, 
 
   n = (nx_empty * 2 + nx_overlap)^2
 
-  empty_sites = Vector{Int32}()
-  for ix=1:nx_empty
-    for iy=(nx_empty+nx_overlap+1):(nx_empty*2+nx_overlap)
-      append!(empty_sites, indices_suplatt[ix,iy,1])
-    end
-  end
-  for ix=(nx_empty+nx_overlap+1):(nx_empty*2+nx_overlap)
-    for iy=1:nx_empty
-      append!(empty_sites, indices_suplatt[ix,iy,1])
-    end
-  end
+  empty_sites = get_empty_sites(nx_empty, nx_overlap, indices_suplatt)
 
   Mat_I3x3 = Matrix{Complex{Float64}}(I, 3, 3)
   H_diag_blk = Mat_I3x3*E_resonant
@@ -137,8 +145,8 @@ function make_2d_dumbbell_Htotal(nx_empty, nx_overlap, prefac, indices_suplatt, 
       start_row = 3*(irow-1)+1; end_row = 3*irow
       start_col = 3*(icol-1)+1; end_col = 3*icol
       
-      is_row_empty = typeof(findfirst(i->i==irow, empty_sites)) == Nothing
-      is_col_empty = typeof(findfirst(i->i==icol, empty_sites)) == Nothing
+      is_row_empty = typeof(findfirst(i->i==irow, empty_sites)) != Nothing
+      is_col_empty = typeof(findfirst(i->i==icol, empty_sites)) != Nothing
 
       if (is_row_empty || is_col_empty)
         continue
