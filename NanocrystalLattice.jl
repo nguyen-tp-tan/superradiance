@@ -103,6 +103,44 @@ end
 
 # ------------------------------------------
 """
+Function that returns the 3D positions of a 2D array of nanocrystals
+in xy-plane with a rectangular empty region in the middle
+## INPUT
+`nx` : max number of nanocrystals along x direction
+`ny` : _______________//_______________ y direction
+`percent_empty` : percentage of the empty area
+`dx_c2c` : center-to-center distance along x direction
+`dy_c2c` : _______________//______________
+`z_coor` : z coordinates of the plane, zCoor = 0 if the array lies in xy-plane
+"""
+function NanocrystalPositions2DRectangularWithHole(
+  nx::Int, ny::Int, dx_c2c::Float64, dy_c2c::Float64, z_coor::Float64, 
+  hole_ratio_x::Float64, hole_ratio_y::Float64)
+  result = zeros(3, 0)
+  if (hole_ratio_x > 1 || hole_ratio_y > 1 || (hole_ratio_x == 1 && hole_ratio_y == 1))
+    return result
+  end
+
+  is_empty = (i::Int, n::Int, percent::Float64) -> begin
+    upper_limit = 1 + 0.5*(n-1)*(1+percent)
+    lower_limit = 1 + 0.5*(n-1)*(1-percent)
+    return (i >= lower_limit) && (i <= upper_limit)
+  end
+
+  for iy=1:ny
+    for ix=1:nx
+      if (is_empty(ix, nx, hole_ratio_x) && is_empty(iy, ny, hole_ratio_y))
+        continue;
+      end
+      current_position = [ix*dx_c2c; iy*dy_c2c; z_coor]
+      result = [result current_position]
+    end
+  end
+  return result
+end
+
+# ------------------------------------------
+"""
 Function that returns a matrix of positions (in 3D) of 2D array of nanocrystals
 of which its plane is parallel to xy-plane and the a_1 primitive vector points 
 along the x direction
