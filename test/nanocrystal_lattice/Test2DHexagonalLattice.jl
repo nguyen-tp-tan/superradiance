@@ -36,12 +36,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     yValue = sqrt(3.0) * ((irow-1)//2)
     startIdx = (irow-1)*n1 + 1
     endIdx = (irow-1)*n1 + n1
-    # println(string("start at ", startIdx, " and ends at ", endIdx))
-    # println(array3[2,startIdx:endIdx])
-    # println(string("y value = ", yValue))
     @test maximum(array3[2,startIdx:endIdx]) == yValue && minimum(array3[2,startIdx:endIdx]) == yValue
-    # println(array3[1,startIdx:endIdx])
-    # println(string("At row ", irow, ", shift by ", floor(irow/2)))
     array3Xslice = 0.5*mod((irow-1), 2) .+ [icol-1 for icol=1:n1]
     @test array3[1,startIdx:endIdx] == circshift(array3Xslice, floor(irow/2))
   end

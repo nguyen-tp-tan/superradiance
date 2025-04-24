@@ -5,23 +5,7 @@ source_path = string(project_path, "Codes/superradiance/")
 
 include(string(source_path, "NanocrystalLattice.jl"))
 
-# function test_to_file(N, LNC, Lshell)
-#   dir_name = string(@__DIR__, "/ring_1d")
-#   if (~isdir(dir_name))
-#     mkdir(dir_name)
-#   end
-
-#   file_name = string(dir_name,"N=",N,"LNC=",LNC,"nm_Lshell=",Lshell,"nm.txt")
-#   open(file_name, "w") do file_address
-#     writedlm(file_address, NanocrystalPositions1DRing(N, LNC, Lshell))
-#   end
-# end
-
 if abspath(PROGRAM_FILE) == @__FILE__
-  # test_to_file(10, 10.0, 1.5)
-  # test_to_file(2, 10.0, 1.5)
-  # test_to_file(1, 10.0, 1.5)
-  # test_to_file(10, 10.0, 40.0)
 
   # Test the case where only 1 nanocrystal exists
   case1 = NanocrystalPositions1DRing(1, 10.0, 1.5)
